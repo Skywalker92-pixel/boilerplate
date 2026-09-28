@@ -16,22 +16,20 @@ flowchart TD
     end
 
     subgraph MONOLITO ["Marketplace Backend (Monolito Modular - Node.js / Express)"]
-        subgraph MIDDLEWARES ["Middlewares Universales"]
-            CORS["CORS"]
-            Auth["Auth (JWT / Roles)"]
-            Validacion["Validación de Entrada"]
-            Logger["Logs & Métricas"]
-        end
-
+        direction TB
+        MW["Middlewares Transversales (CORS, JWT Auth, Validación, Logger)"]
+        
         subgraph PRESENTACION ["1. Capa de Presentación (Rutas y Controladores)"]
-            U_R["usuarios.routes / controller"]
-            S_R["sellers.routes / controller"]
-            CAT_R["catalogo.routes / controller"]
-            CAR_R["carrito.routes / controller"]
-            P_R["pedidos.routes / controller"]
+            direction LR
+            U_R["usuarios.routes"]
+            S_R["sellers.routes"]
+            CAT_R["catalogo.routes"]
+            CAR_R["carrito.routes"]
+            P_R["pedidos.routes"]
         end
 
         subgraph LOGICA ["2. Capa de Lógica de Negocio (Servicios y Casos de Uso)"]
+            direction LR
             U_S["usuarios.service"]
             S_S["sellers.service"]
             CAT_S["catalogo.service"]
@@ -40,33 +38,32 @@ flowchart TD
         end
 
         subgraph DATOS ["3. Capa de Acceso a Datos (Repositorios)"]
-            U_D["usuarios.repository"]
-            S_D["sellers.repository"]
-            CAT_D["catalogo.repository"]
-            CAR_D["carrito.repository"]
-            P_D["pedidos.repository"]
-            ORM["Acceso a Datos / Pool Conexiones"]
+            direction LR
+            U_D["usuarios.repo"]
+            S_D["sellers.repo"]
+            CAT_D["catalogo.repo"]
+            CAR_D["carrito.repo"]
+            P_D["pedidos.repo"]
         end
     end
 
-    subgraph PERSISTENCIA ["Almacenamiento"]
-        PostgreSQL[("Base de Datos PostgreSQL")]
-        Redis[("Caché Redis")]
+    subgraph PERSISTENCIA ["Almacenamiento & Caché"]
+        PostgreSQL[("PostgreSQL")]
+        Redis[("Redis Cache")]
     end
 
     subgraph EXTERNOS ["Sistemas Externos"]
-        Pasarela["Pasarela de Pagos (Stripe / Local)"]
-        Envios["Servicio de Envíos / Courier"]
+        Pasarela["Pasarela de Pagos"]
+        Envios["Servicio de Envíos"]
         ERP["ERP / Facturación"]
     end
 
-    %% Relaciones
-    WebClient -->|HTTPS / REST| MIDDLEWARES
-    MIDDLEWARES --> PRESENTACION
+    %% Relaciones de flujo
+    WebClient -->|HTTPS / REST| MW
+    MW --> PRESENTACION
     PRESENTACION --> LOGICA
     LOGICA --> DATOS
-    DATOS --> ORM
-    ORM --> PostgreSQL
+    DATOS --> PostgreSQL
     LOGICA -.-> Redis
     P_S -->|HTTPS / REST| Pasarela
     P_S -->|HTTPS / REST| Envios
